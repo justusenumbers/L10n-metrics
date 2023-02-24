@@ -6,7 +6,7 @@ import sqlite3
 from datetime import datetime
 
 
-# Get data from Database
+## Get data from Database
 database = sqlite3.connect("Dummy_data.db")
 df = pd.read_sql_query("SELECT * FROM localization_projects", database)
 
@@ -27,22 +27,34 @@ total_projects_query = "SELECT COUNT(DISTINCT project_id) FROM localization_proj
 total_projects = pd.read_sql_query(total_projects_query, database)
 total_projects = total_projects.iloc[0]["COUNT(DISTINCT project_id)"]
 
-# of projects completed by PM
-projects_by_pm_query = ""
-
-
 # Initialize Dashboard
 st.title("Localization Metrics")
+
+## Side bar and filters
+# Date Range
+st.sidebar.header("Filters")
+Start_date_filter = st.sidebar.date_input(
+    "Select date range:", (min_date_object, max_date_object)
+)
+
+# PM selection
+all_pms = pd.read_sql_query(
+    "SELECT DISTINCT project_manager FROM localization_projects", database
+)["project_manager"].tolist()
+
+pm_selection = st.sidebar.multiselect(
+    "Project Managers", options=all_pms, default=all_pms
+)
+
+# Show raw data
+st.sidebar.subheader("Raw data")
+if st.sidebar.checkbox("Show raw data"):
+    st.write(df)
+
+## Charts
 left_column, right_column = st.columns(2)
 
 # Total Projects
 st.subheader("Total Projects")
 # st.metric(label="Total Projects", value=total_projects, label_visibility="collapsed")
 st.info(total_projects)
-
-# Create Side bar and filter
-st.sidebar.header("Select date range:")
-Start_date_filter = st.sidebar.date_input("", (min_date_object, max_date_object))
-st.sidebar.subheader("Raw data")
-if st.sidebar.checkbox("Show raw data"):
-    st.write(df)
